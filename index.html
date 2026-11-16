@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Is GCSE Computer Science for me?</title>
+<style>
+  :root {
+    --navy: #1b2a4e;
+    --teal: #0f8b8d;
+    --teal-light: #e3f4f4;
+    --amber: #f2a541;
+    --amber-light: #fdf1de;
+    --coral: #e2725b;
+    --coral-light: #fbe7e2;
+    --grey: #5b6476;
+    --line: #dde2ea;
+    --bg: #ffffff;
+    --card: #f7f9fc;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--navy);
+    font-family: "Segoe UI", system-ui, -apple-system, Arial, sans-serif;
+    font-size: 18px; line-height: 1.5;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 40px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 0 0 8px; }
+  h2 { font-size: 1.45rem; line-height: 1.25; margin: 0 0 14px; }
+  p { margin: 0 0 14px; }
+  .lead { color: var(--grey); font-size: 1.05rem; }
+  .badge {
+    display: inline-block; background: var(--teal-light); color: var(--teal);
+    font-weight: 700; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 999px; margin-bottom: 12px;
+  }
+  .choices { display: grid; gap: 16px; margin-top: 24px; }
+  @media (min-width: 620px) { .choices { grid-template-columns: 1fr 1fr; } }
+  .choice {
+    text-align: left; border: 2px solid var(--line); background: var(--card);
+    border-radius: 14px; padding: 20px; cursor: pointer; font: inherit; color: inherit;
+    transition: border-color .15s, transform .15s;
+  }
+  .choice:hover, .choice:focus-visible { border-color: var(--teal); transform: translateY(-2px); outline: none; }
+  .choice .icon { font-size: 2rem; display: block; margin-bottom: 6px; }
+  .choice strong { display: block; font-size: 1.15rem; margin-bottom: 4px; }
+  .choice span.sub { color: var(--grey); font-size: .95rem; }
+
+  .progress { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; color: var(--grey); font-size: .9rem; }
+  .bar { flex: 1; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--teal); width: 0; transition: width .3s; }
+
+  .options { display: grid; gap: 10px; margin: 18px 0; }
+  .opt {
+    text-align: left; font: inherit; color: inherit; background: #fff;
+    border: 2px solid var(--line); border-radius: 12px; padding: 14px 16px; cursor: pointer;
+  }
+  .opt:hover:not(:disabled), .opt:focus-visible { border-color: var(--teal); outline: none; }
+  .opt:disabled { cursor: default; }
+  .opt.picked { border-color: var(--teal); background: var(--teal-light); font-weight: 600; }
+  .opt.correct { border-color: var(--teal); background: var(--teal-light); font-weight: 600; }
+  .opt.wrong { border-color: var(--coral); background: var(--coral-light); }
+  .tf { grid-template-columns: 1fr 1fr; }
+  .tf .opt { text-align: center; font-weight: 700; font-size: 1.1rem; }
+
+  .feedback {
+    border-left: 5px solid var(--teal); background: var(--teal-light);
+    border-radius: 0 12px 12px 0; padding: 14px 16px; margin-bottom: 18px;
+  }
+  .feedback.warn { border-color: var(--amber); background: var(--amber-light); }
+  .feedback.bad { border-color: var(--coral); background: var(--coral-light); }
+  .feedback strong { display: block; margin-bottom: 4px; }
+
+  .btn {
+    font: inherit; font-weight: 700; border: 0; border-radius: 10px; padding: 12px 22px;
+    cursor: pointer; background: var(--navy); color: #fff;
+  }
+  .btn:hover, .btn:focus-visible { background: var(--teal); outline: none; }
+  .btn.ghost { background: transparent; color: var(--navy); border: 2px solid var(--line); }
+  .btn.ghost:hover, .btn.ghost:focus-visible { border-color: var(--teal); color: var(--teal); background: transparent; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+  .result-head { border-radius: 16px; padding: 22px; margin-bottom: 20px; }
+  .result-head.great { background: var(--teal-light); }
+  .result-head.maybe { background: var(--amber-light); }
+  .result-head.think { background: var(--coral-light); }
+  .result-head .big { font-size: 2.4rem; display: block; }
+  .result-head h2 { margin-bottom: 8px; }
+  .result-head p { margin: 0; }
+  .list-box { border: 2px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 16px; }
+  .list-box h3 { margin: 0 0 8px; font-size: 1.1rem; }
+  .list-box ul { margin: 0; padding-left: 22px; }
+  .list-box li { margin-bottom: 6px; }
+  .note { color: var(--grey); font-size: .95rem; }
+  [hidden] { display: none !important; }
+  h1:focus, h2:focus { outline: none; }
+</style>
+</head>
+<body>
+<main class="wrap" id="app" aria-live="polite"></main>
+
+<script>
+/* =====================================================================
+   SETTINGS: edit these to suit your school
+   ===================================================================== */
+const SETTINGS = {
+  subjectName: "GCSE Computer Science",
+  // Who students should talk to (shown on the results screen)
+  contact: "your Computer Science teacher",
+  // Shown to students whose result suggests CS may not be the best fit.
+  // Leave as "" to hide it.
+  alternatives: "If you love being creative with technology – making videos, graphics or websites – have a chat about other options that focus more on that side of things."
+};
+
+/* =====================================================================
+   PART 1: "IS IT FOR ME?" QUESTIONS
+   Each answer scores 2 (great sign), 1 (fine) or 0 (worth thinking about).
+   "strength" lines appear on the results screen for 2-point answers;
+   "think" lines appear for 0-point answers.
+   ===================================================================== */
+const FIT_QUESTIONS = [
+  {
+    q: "How do you feel about puzzles – riddles, Sudoku, escape rooms, brain-teasers?",
+    options: [
+      { text: "I love them – the harder the better!", score: 2,
+        fb: "Brilliant! Computer Science is all about solving puzzles. Every program you write is a problem to crack." },
+      { text: "I enjoy them sometimes", score: 1,
+        fb: "That's a good start. Lots of students find they enjoy puzzles more once they're making things that actually work." },
+      { text: "Not really my thing", score: 0,
+        fb: "That's fine – but problem solving is at the heart of the subject, so it's worth thinking about how much you'd enjoy that every lesson." }
+    ],
+    strength: "You enjoy solving puzzles – that's what Computer Science is all about.",
+    think: "Problem solving is a big part of every lesson. Try a few coding challenges and see whether that kind of puzzle grabs you."
+  },
+  {
+    q: "Your code doesn't work and you can't see why. What's your gut reaction?",
+    options: [
+      { text: "I want to keep going until I find the problem", score: 2,
+        fb: "Great attitude! Real programmers get errors ALL the time – finding and fixing them is part of the fun." },
+      { text: "I'd have a go, then ask for help", score: 1,
+        fb: "Perfect – that's exactly what good programmers do. Knowing when to ask is a real skill." },
+      { text: "I'd get frustrated and want to give up", score: 0,
+        fb: "Everyone feels like that sometimes! In GCSE CS you'll meet errors often, so it helps if you're willing to stick with it – and it really does get easier with practice." }
+    ],
+    strength: "You stick with problems – that persistence is one of the most important things for success.",
+    think: "You'll get stuck on code regularly. It gets easier, but you'll need to be ready to keep trying (and to ask for help)."
+  },
+  {
+    q: "How have you found programming in Python in your lessons so far?",
+    options: [
+      { text: "I enjoyed it and want to do more", score: 2,
+        fb: "Fantastic! In GCSE you'll go much further and build bigger, more interesting programs." },
+      { text: "It was OK – I got there with some help", score: 1,
+        fb: "That's completely normal. Most students who take GCSE CS weren't experts at the start – they got better with practice." },
+      { text: "I really didn't enjoy it", score: 0,
+        fb: "That's honest, and important. Programming is a big part of the GCSE (including in the exam), so think carefully – and maybe talk to your teacher about what you didn't enjoy." }
+    ],
+    strength: "You've enjoyed programming – and there's lots more to come at GCSE.",
+    think: "Programming is a big part of the course and the exams. Ask your teacher if you can have a go at some GCSE-style tasks before you decide."
+  },
+  {
+    q: "Would you be happy to practise coding outside lessons – at home or at a lunchtime club?",
+    options: [
+      { text: "Yes – I already do sometimes!", score: 2,
+        fb: "Amazing! Students who practise a little and often make the biggest progress." },
+      { text: "I would if I needed to", score: 1,
+        fb: "Good – even 15–20 minutes a week of extra practice makes a real difference." },
+      { text: "I'd rather not", score: 0,
+        fb: "Programming is a bit like learning an instrument – it really helps to practise between lessons. It doesn't have to be much, though!" }
+    ],
+    strength: "You're happy to practise – that's the fastest way to get good at programming.",
+    think: "Like a musical instrument, coding improves with practice outside lessons. Even a little each week helps."
+  },
+  {
+    q: "Do you ever wonder how the technology you use every day actually works – like apps, games or AI chatbots?",
+    options: [
+      { text: "Yes – I'm really curious about it", score: 2,
+        fb: "Then you'll love this subject! You'll find out what's going on behind the screen." },
+      { text: "Sometimes", score: 1,
+        fb: "Lots of students find their curiosity grows once they start to understand how things work." },
+      { text: "Not really – I just like using it", score: 0,
+        fb: "That's really common! Computer Science is less about using technology and more about how it works and how to create it." }
+    ],
+    strength: "You're curious about how technology works – that will make the course really interesting for you.",
+    think: "CS is about how technology works and how to make it – not about using apps. Make sure that's what you're interested in."
+  },
+  {
+    q: "How do you feel about working with numbers, patterns and logic?",
+    options: [
+      { text: "I enjoy it", score: 2,
+        fb: "Great – spotting patterns and thinking logically will help you lots." },
+      { text: "I'm OK with it", score: 1,
+        fb: "That's all you need. You don't have to be a maths genius – it's more about thinking step by step." },
+      { text: "I find it really tricky", score: 0,
+        fb: "There is some number work and logical thinking in CS. It's not the same as GCSE Maths, but it's worth being aware of – your teacher can tell you more." }
+    ],
+    strength: "You're comfortable with numbers and logic – a useful foundation.",
+    think: "There's some number work and lots of logical thinking. You don't need to be top set in maths, but it helps to be willing to give it a go."
+  },
+  {
+    q: "Imagine writing instructions so precise that a robot could follow them perfectly. That sounds…",
+    options: [
+      { text: "Fun – I like getting details exactly right", score: 2,
+        fb: "Perfect! Computers do exactly what you tell them – so attention to detail is a superpower in CS." },
+      { text: "OK – I can be careful when I need to be", score: 1,
+        fb: "That's great. You'll build this skill naturally as you program more." },
+      { text: "A bit boring, to be honest", score: 0,
+        fb: "Fair enough! Being precise is a big part of programming, though – one missing bracket can stop everything working." }
+    ],
+    strength: "You like getting details right – computers reward that!",
+    think: "Programming needs careful attention to detail. Think about whether that's something you'd enjoy."
+  },
+  {
+    q: "GCSE Computer Science is assessed by two exams at the end of Year 11 (there's no coursework). How do you feel about that?",
+    options: [
+      { text: "That suits me – I'm happy with exams", score: 2,
+        fb: "Great! Knowing it's all exam means you can focus on building your skills and revising well." },
+      { text: "I'm OK with it", score: 1,
+        fb: "Good – you'll do lots of practice questions along the way, so you'll know exactly what to expect." },
+      { text: "I'd much rather have coursework", score: 0,
+        fb: "That's worth knowing. You will still do practical programming projects in lessons, but your grade comes from the two exams." }
+    ],
+    strength: "You're comfortable with exams – the way GCSE CS is assessed.",
+    think: "Your grade comes entirely from two exams. If you strongly prefer coursework, consider how you'd feel about that."
+  },
+  {
+    q: "What's the main reason you're thinking about Computer Science?",
+    options: [
+      { text: "I enjoy it and want to learn more", score: 2,
+        fb: "The best reason of all! Enjoying a subject makes the hard work feel worth it." },
+      { text: "It could be useful for my future career", score: 2,
+        fb: "Great thinking – computing skills are useful in almost every career, from medicine to music to marketing." },
+      { text: "I like using computers, gaming or making videos", score: 1,
+        fb: "That interest is a great start! Just remember CS is about how technology works and programming, rather than using apps or making media." },
+      { text: "My friends are taking it", score: 0,
+        fb: "It's natural to want to be with friends – but pick subjects you'll enjoy for two years. Your friends will still be your friends!" }
+    ],
+    strength: "You've got a great reason for choosing it.",
+    think: "Make sure you're choosing it because it's right for you, not just because of friends."
+  },
+  {
+    q: "If you could make one thing with technology, which would excite you most?",
+    options: [
+      { text: "My own game or app", score: 2,
+        fb: "Love it! GCSE CS gives you the programming skills that real game and app makers use." },
+      { text: "Something that helps people – like a tool for a charity or an AI to spot illness", score: 2,
+        fb: "Brilliant! Technology is changing healthcare, the environment and more – and it needs people like you." },
+      { text: "A cool video, design or website", score: 1,
+        fb: "Creative tech is great! CS will give you some of the skills behind it, but the course focuses more on programming than on design." },
+      { text: "None of these really excite me", score: 0,
+        fb: "That's OK – not everyone wants to make things with technology. It's worth thinking about which subjects DO excite you." }
+    ],
+    strength: "You've got ideas for things you'd like to create – that's what keeps programmers motivated.",
+    think: "Making things with technology doesn't excite you much at the moment – think about which subjects do."
+  }
+];
+
+/* =====================================================================
+   PART 2: MYTH OR FACT?
+   answer: true = Fact, false = Myth
+   ===================================================================== */
+const MYTHS = [
+  { s: "You have to be into gaming to take Computer Science.", answer: false,
+    fb: "Myth! Some students love games, lots don't. What matters is enjoying solving problems and creating things." },
+  { s: "Computer Science is mostly about learning to use Word, PowerPoint and Excel.", answer: false,
+    fb: "Myth! CS is about how computers work and how to write programs – you'll be creating software, not just using it." },
+  { s: "Computing is more of a boys' subject.", answer: false,
+    fb: "Definitely a myth! Ada Lovelace wrote what's often called the first computer program, Grace Hopper helped invent modern programming languages, and thousands of women did vital computing work at Bletchley Park. Tech needs more women – and girls do brilliantly in CS." },
+  { s: "You need to be in the top set for maths to do well.", answer: false,
+    fb: "Myth! It helps to be comfortable with numbers and logic, but persistence and careful thinking matter much more than your maths set." },
+  { s: "You need to have done lots of coding at home before you start.", answer: false,
+    fb: "Myth! The course teaches you what you need. Lots of successful students start with just what they've learned in KS3 lessons." },
+  { s: "You'll write and fix code in your GCSE exam.", answer: true,
+    fb: "Fact! Part of the exam asks you to write and fix code on paper – which is why practising programming throughout the course is so important." },
+  { s: "Computer Science is only useful if you want to be a programmer.", answer: false,
+    fb: "Myth! Problem solving and computing skills are valued in science, medicine, business, the creative industries, law and much more." },
+  { s: "In Computer Science you get to think about big questions, like how AI and technology affect people's lives.", answer: true,
+    fb: "Fact! You'll explore the impact of technology on society – privacy, the environment, ethics and more." }
+];
+
+/* =====================================================================
+   App logic – no need to edit below this line
+   ===================================================================== */
+const app = document.getElementById("app");
+let state = {};
+
+function el(html) { const d = document.createElement("div"); d.innerHTML = html.trim(); return d; }
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c])); }
+function show(html) {
+  app.innerHTML = html;
+  window.scrollTo(0, 0);
+  const h = app.querySelector("h1, h2");
+  if (h) { h.setAttribute("tabindex", "-1"); h.focus({ preventScroll: true }); }
+}
+
+function home() {
+  show(`
+    <span class="badge">Year 9 Options</span>
+    <h1>Is ${esc(SETTINGS.subjectName)} for me?</h1>
+    <p class="lead">Thinking about taking Computer Science? Find out whether it could be a great fit for you, and bust some common myths along the way.</p>
+    <div class="choices">
+      <button class="choice" onclick="startFit()">
+        <span class="icon" aria-hidden="true">🧭</span>
+        <strong>Is it for me?</strong>
+        <span class="sub">10 quick questions about you, with honest feedback at the end.</span>
+      </button>
+      <button class="choice" onclick="startMyths()">
+        <span class="icon" aria-hidden="true">💡</span>
+        <strong>Myth or fact?</strong>
+        <span class="sub">8 things people say about Computer Science – which are true?</span>
+      </button>
+    </div>
+  `);
+}
+
+/* ---------- Part 1 ---------- */
+function startFit() { state = { i: 0, answers: [] }; fitQuestion(); }
+
+function progress(i, n) {
+  return `<div class="progress"><span>Question ${i + 1} of ${n}</span>
+    <div class="bar" aria-hidden="true"><div style="width:${(i / n) * 100}%"></div></div></div>`;
+}
+
+function fitQuestion() {
+  const q = FIT_QUESTIONS[state.i];
+  show(`
+    ${progress(state.i, FIT_QUESTIONS.length)}
+    <h2>${esc(q.q)}</h2>
+    <div class="options">
+      ${q.options.map((o, k) => `<button class="opt" onclick="fitAnswer(${k})">${esc(o.text)}</button>`).join("")}
+    </div>
+    <div id="fb"></div>
+  `);
+}
+
+function fitAnswer(k) {
+  const q = FIT_QUESTIONS[state.i];
+  const o = q.options[k];
+  state.answers[state.i] = o.score;
+  app.querySelectorAll(".opt").forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === k) b.classList.add("picked");
+  });
+  const cls = o.score === 2 ? "" : o.score === 1 ? "" : "warn";
+  const last = state.i === FIT_QUESTIONS.length - 1;
+  document.getElementById("fb").innerHTML = `
+    <div class="feedback ${cls}">${esc(o.fb)}</div>
+    <div class="actions"><button class="btn" id="next" onclick="fitNext()">${last ? "See my result" : "Next question"} →</button></div>`;
+  document.getElementById("next").focus();
+}
+
+function fitNext() {
+  state.i++;
+  if (state.i < FIT_QUESTIONS.length) fitQuestion(); else fitResult();
+}
+
+function fitResult() {
+  const total = state.answers.reduce((a, b) => a + b, 0);
+  const max = FIT_QUESTIONS.length * 2;
+  const pct = total / max;
+  const strengths = FIT_QUESTIONS.filter((q, i) => state.answers[i] === 2).map(q => q.strength);
+  const thinks = FIT_QUESTIONS.filter((q, i) => state.answers[i] === 0).map(q => q.think);
+
+  let band, icon, title, msg;
+  if (pct >= 0.7 && thinks.length <= 1) {
+    band = "great"; icon = "🚀"; title = "Computer Science sounds like a great fit for you!";
+    msg = "Your answers show lots of the qualities that help students enjoy and do well in Computer Science. Have a chat with " + esc(SETTINGS.contact) + " to find out more about what you'll learn.";
+  } else if (pct >= 0.45) {
+    band = "maybe"; icon = "🌱"; title = "Computer Science could be a good fit for you";
+    msg = "You've got some real strengths – and a few things worth thinking about. Lots of students who answered like you go on to really enjoy the course. Talk it through with " + esc(SETTINGS.contact) + ".";
+  } else {
+    band = "think"; icon = "🤔"; title = "It's worth thinking carefully about this one";
+    msg = "From your answers, Computer Science might not be the subject you'd enjoy most – and it's important to choose subjects you'll love for two years. That said, a quiz can't know everything about you! Have an honest chat with " + esc(SETTINGS.contact) + " before you decide.";
+  }
+
+  show(`
+    <div class="result-head ${band}">
+      <span class="big" aria-hidden="true">${icon}</span>
+      <h2>${title}</h2>
+      <p>${msg}</p>
+    </div>
+    ${strengths.length ? `<div class="list-box"><h3>✅ Your strengths</h3><ul>${strengths.map(s => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
+    ${thinks.length ? `<div class="list-box"><h3>💭 Things to think about</h3><ul>${thinks.map(s => `<li>${esc(s)}</li>`).join("")}</ul></div>` : ""}
+    ${band === "think" && SETTINGS.alternatives ? `<p class="note">${esc(SETTINGS.alternatives)}</p>` : ""}
+    <div class="actions">
+      <button class="btn" onclick="startMyths()">Try Myth or Fact →</button>
+      <button class="btn ghost" onclick="startFit()">Retake quiz</button>
+      <button class="btn ghost" onclick="home()">Home</button>
+    </div>
+  `);
+}
+
+/* ---------- Part 2 ---------- */
+function startMyths() { state = { i: 0, right: 0 }; mythQuestion(); }
+
+function mythQuestion() {
+  const m = MYTHS[state.i];
+  show(`
+    ${progress(state.i, MYTHS.length)}
+    <span class="badge">Myth or fact?</span>
+    <h2>“${esc(m.s)}”</h2>
+    <div class="options tf">
+      <button class="opt" onclick="mythAnswer(false)">Myth</button>
+      <button class="opt" onclick="mythAnswer(true)">Fact</button>
+    </div>
+    <div id="fb"></div>
+  `);
+}
+
+function mythAnswer(choice) {
+  const m = MYTHS[state.i];
+  const ok = choice === m.answer;
+  if (ok) state.right++;
+  const btns = app.querySelectorAll(".opt");
+  btns.forEach(b => b.disabled = true);
+  const correctBtn = btns[m.answer ? 1 : 0];
+  const chosenBtn = btns[choice ? 1 : 0];
+  correctBtn.classList.add("correct");
+  if (!ok) chosenBtn.classList.add("wrong");
+  const last = state.i === MYTHS.length - 1;
+  document.getElementById("fb").innerHTML = `
+    <div class="feedback ${ok ? "" : "warn"}"><strong>${ok ? "Spot on!" : "Not quite…"}</strong>${esc(m.fb)}</div>
+    <div class="actions"><button class="btn" id="next" onclick="mythNext()">${last ? "See my score" : "Next"} →</button></div>`;
+  document.getElementById("next").focus();
+}
+
+function mythNext() {
+  state.i++;
+  if (state.i < MYTHS.length) mythQuestion(); else mythResult();
+}
+
+function mythResult() {
+  const n = MYTHS.length, r = state.right;
+  const msg = r === n ? "Perfect score – you're a true myth-buster!"
+    : r >= n - 2 ? "Great work – you know your stuff!"
+    : "Some of those may have surprised you – Computer Science is probably different from what you expected!";
+  show(`
+    <div class="result-head great">
+      <span class="big" aria-hidden="true">🏆</span>
+      <h2>You got ${r} out of ${n}</h2>
+      <p>${msg}</p>
+    </div>
+    <div class="actions">
+      <button class="btn" onclick="startFit()">Is it for me? →</button>
+      <button class="btn ghost" onclick="startMyths()">Try again</button>
+      <button class="btn ghost" onclick="home()">Home</button>
+    </div>
+  `);
+}
+
+home();
+</script>
+</body>
+</html>
